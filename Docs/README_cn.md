@@ -7,6 +7,23 @@ YTKNetwork 是猿题库 iOS 研发团队基于 [AFNetworking][AFNetworking] 封�
 相比 AFNetworking，YTKNetwork 提供了以下更高级的功能：
 
  * 支持按时间缓存网络请求内容
+ * 支持网络重试次数
+ ```objc
+ /// overage numberOfRetries
+ @property (nonatomic, readonly) NSInteger numberOfRetriesOverage;
+ ```
+ * 预置缓存策略
+ ```objc
+ /// Caching strategy. Note that when TYKCachePolicyUseCacheAndRequest is cached, there may be two callbacks, the first cache callback, the second network callback
+ typedef NS_ENUM(NSUInteger, TYKCachePolicy) {
+     TYKCachePolicyIgnoreCache,// Ignore the cache and always initiate a new request
+     TYKCachePolicyUseCacheOrRequest,// If the cache is effective, the cache is used first. Otherwise, initiate a new request
+     TYKCachePolicyUseCacheAndRequest// If the cache is valid, use the cache and initiate a new request
+ };
+ 
+ /// Caching policy
+ @property (nonatomic) TYKCachePolicy cachePolicy;
+ ```
  * 支持按版本号缓存网络请求内容
  * 支持统一设置服务器和 CDN 的地址
  * 支持检查返回 JSON 内容的合法性

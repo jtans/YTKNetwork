@@ -384,6 +384,19 @@
     if (succeed) {
         [self requestDidSucceedWithRequest:request];
     } else {
+        if ([request isKindOfClass:[YTKRequest class]]) {
+            YTKRequest *_request = (YTKRequest *)request;
+            if (_request.numberOfRetriesOverage > 0) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self removeRequestFromRecord:request];
+                    [request clearCompletionBlock];
+                    
+                    // retry until numberOfRetriesOverage < 0
+                    [_request start];
+                });
+                return;
+            }
+        }
         [self requestDidFailWithRequest:request error:requestError];
     }
 

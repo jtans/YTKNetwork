@@ -19,6 +19,8 @@
 - (void)setupRequestFilters {
     NSString *appVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     YTKNetworkConfig *config = [YTKNetworkConfig sharedConfig];
+    config.baseUrl = @"https://www.baidu.com";
+    
     YTKUrlArgumentsFilter *urlFilter = [YTKUrlArgumentsFilter filterWithArguments:@{@"version": appVersion}];
     [config addUrlFilter:urlFilter];
 }

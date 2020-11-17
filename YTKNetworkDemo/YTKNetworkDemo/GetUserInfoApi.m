@@ -16,6 +16,7 @@
     self = [super init];
     if (self) {
         _userId = userId;
+        self.cachePolicy = TYKCachePolicyUseCacheOrRequest;
     }
     return self;
 }
@@ -28,15 +29,19 @@
     return @{ @"id": _userId };
 }
 
-- (id)jsonValidator {
-    return @{
-        @"nick": [NSString class],
-        @"level": [NSNumber class]
-    };
-}
+//- (id)jsonValidator {
+//    return @{
+//        @"nick": [NSString class],
+//        @"level": [NSNumber class]
+//    };
+//}
 
 - (NSInteger)cacheTimeInSeconds {
     return 60 * 3;
+}
+
+- (NSInteger)numberOfRetries {
+    return 3;
 }
 
 @end

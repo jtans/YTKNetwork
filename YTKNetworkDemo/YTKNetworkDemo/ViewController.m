@@ -68,16 +68,21 @@
 - (void)loadCacheData {
     NSString *userId = @"1";
     GetUserInfoApi *api = [[GetUserInfoApi alloc] initWithUserId:userId];
-    if ([api loadCacheWithError:nil]) {
-        NSDictionary *json = [api responseJSONObject];
-        NSLog(@"json = %@", json);
-        // show cached data
-    }
+//    if ([api loadCacheWithError:nil]) {
+//        NSDictionary *json = [api responseJSONObject];
+//        NSLog(@"json = %@", json);
+//        // show cached data
+//    }
 
     api.animatingText = @"正在加载";
     api.animatingView = self.view;
 
     [api startWithCompletionBlockWithSuccess:^(YTKBaseRequest *request) {
+        if (api.isDataFromCache) {
+            NSLog(@"使用缓存数据");
+        } else {
+            NSLog(@"使用网络数据");
+        }
         NSLog(@"update ui");
     } failure:^(YTKBaseRequest *request) {
         NSLog(@"failed");
@@ -86,6 +91,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    [self loadCacheData];
 }
 
 - (void)didReceiveMemoryWarning {

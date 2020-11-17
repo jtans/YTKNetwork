@@ -37,20 +37,24 @@ NS_ENUM(NSInteger) {
     YTKRequestCacheErrorInvalidCacheData = -7,
 };
 
+/// Caching strategy. Note that when TYKCachePolicyUseCacheAndRequest is cached, there may be two callbacks, the first cache callback, the second network callback
+typedef NS_ENUM(NSUInteger, TYKCachePolicy) {
+    TYKCachePolicyIgnoreCache,// Ignore the cache and always initiate a new request
+    TYKCachePolicyUseCacheOrRequest,// If the cache is effective, the cache is used first. Otherwise, initiate a new request
+    TYKCachePolicyUseCacheAndRequest// If the cache is valid, use the cache and initiate a new request
+};
+
 ///  YTKRequest is the base class you should inherit to create your own request class.
 ///  Based on YTKBaseRequest, YTKRequest adds local caching feature. Note download
 ///  request will not be cached whatsoever, because download request may involve complicated
 ///  cache control policy controlled by `Cache-Control`, `Last-Modified`, etc.
 @interface YTKRequest : YTKBaseRequest
 
-///  Whether to use cache as response or not.
-///  Default is NO, which means caching will take effect with specific arguments.
-///  Note that `cacheTimeInSeconds` default is -1. As a result cache data is not actually
-///  used as response unless you return a positive value in `cacheTimeInSeconds`.
-///
-///  Also note that this option does not affect storing the response, which means response will always be saved
-///  even `ignoreCache` is YES.
-@property (nonatomic) BOOL ignoreCache;
+/// Caching policy
+@property (nonatomic) TYKCachePolicy cachePolicy;
+
+/// overage numberOfRetries
+@property (nonatomic, readonly) NSInteger numberOfRetriesOverage;
 
 ///  Whether data is from local cache.
 - (BOOL)isDataFromCache;
@@ -73,6 +77,9 @@ NS_ENUM(NSInteger) {
 ///  The max time duration that cache can stay in disk until it's considered expired.
 ///  Default is -1, which means response is not actually saved as cache.
 - (NSInteger)cacheTimeInSeconds;
+
+/// The number of error retries. When an error occurs in the request, the number of times allowed to initiate a request
+- (NSInteger)numberOfRetries;
 
 ///  Version can be used to identify and invalidate local cache. Default is 0.
 - (long long)cacheVersion;

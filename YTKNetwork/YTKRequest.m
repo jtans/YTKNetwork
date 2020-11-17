@@ -97,13 +97,26 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 
 @property (nonatomic, strong) YTKCacheMetadata *cacheMetadata;
 @property (nonatomic, assign) BOOL dataFromCache;
+@property (nonatomic, assign) NSInteger numberOfRetriesOverage;
 
 @end
 
 @implementation YTKRequest
 
+- (instancetype)init {
+    if (self = [super init]) {
+        _numberOfRetriesOverage = [self numberOfRetries];
+        _cachePolicy = TYKCachePolicyIgnoreCache;
+    }
+    return self;
+}
+
 - (void)start {
-    if (self.ignoreCache) {
+    _numberOfRetriesOverage--;
+    
+    // Ignore cache.
+    // 忽略缓存，直接发起新请求
+    if (self.cachePolicy == TYKCachePolicyIgnoreCache) {
         [self startWithoutCache];
         return;
     }
@@ -114,22 +127,40 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
         return;
     }
 
-    if (![self loadCacheWithError:nil]) {
-        [self startWithoutCache];
+    // Used cache first. If cache invalid,start request
+    if (self.cachePolicy == TYKCachePolicyUseCacheOrRequest) {
+        if (![self loadCacheWithError:nil]) {// If cache invalid,start request
+            [self startWithoutCache];
+        } else {
+            [self _startWithCache:YES];
+        }
         return;
     }
+    
+    // Use cache,and also start a request
+    if (self.cachePolicy == TYKCachePolicyUseCacheAndRequest) {
+        if ([self loadCacheWithError:nil]) {// Use cache if cache is valid
+            [self _startWithCache:NO];
+        }
+        // Also start new request
+        [super start];
+    }
+}
 
-    _dataFromCache = YES;
-
+- (void)_startWithCache:(BOOL)isFinished {
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         [self requestCompletePreprocessor];
         [self requestCompleteFilter];
         YTKRequest *strongSelf = self;
+        strongSelf.dataFromCache = YES;
         [strongSelf.delegate requestFinished:strongSelf];
         if (strongSelf.successCompletionBlock) {
             strongSelf.successCompletionBlock(strongSelf);
         }
-        [strongSelf clearCompletionBlock];
+        if (isFinished) {
+            [strongSelf clearCompletionBlock];
+        }
     });
 }
 
@@ -143,6 +174,7 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 - (void)requestCompletePreprocessor {
     [super requestCompletePreprocessor];
 
+    _dataFromCache = NO;
     if (self.writeCacheAsynchronously) {
         dispatch_async(ytkrequest_cache_writing_queue(), ^{
             [self saveResponseDataToCacheFile:[super responseData]];
@@ -155,6 +187,10 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 #pragma mark - Subclass Override
 
 - (NSInteger)cacheTimeInSeconds {
+    return -1;
+}
+
+- (NSInteger)numberOfRetries {
     return -1;
 }
 

@@ -159,6 +159,9 @@ void YTKLog(NSString *format, ...) {
 @implementation YTKBaseRequest (RequestAccessory)
 
 - (void)toggleAccessoriesWillStartCallBack {
+    if ([self isKindOfClass:[YTKRequest class]] && ((YTKRequest *)self).numberOfRetriesOverage > 0) {
+        return;
+    }
     for (id<YTKRequestAccessory> accessory in self.requestAccessories) {
         if ([accessory respondsToSelector:@selector(requestWillStart:)]) {
             [accessory requestWillStart:self];
@@ -167,6 +170,9 @@ void YTKLog(NSString *format, ...) {
 }
 
 - (void)toggleAccessoriesWillStopCallBack {
+    if ([self isKindOfClass:[YTKRequest class]] && ((YTKRequest *)self).numberOfRetriesOverage > 0) {
+        return;
+    }
     for (id<YTKRequestAccessory> accessory in self.requestAccessories) {
         if ([accessory respondsToSelector:@selector(requestWillStop:)]) {
             [accessory requestWillStop:self];
@@ -175,6 +181,9 @@ void YTKLog(NSString *format, ...) {
 }
 
 - (void)toggleAccessoriesDidStopCallBack {
+    if ([self isKindOfClass:[YTKRequest class]] && ((YTKRequest *)self).numberOfRetriesOverage > 0) {
+        return;
+    }
     for (id<YTKRequestAccessory> accessory in self.requestAccessories) {
         if ([accessory respondsToSelector:@selector(requestDidStop:)]) {
             [accessory requestDidStop:self];
