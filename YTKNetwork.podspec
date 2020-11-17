@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
                     "liujl" => "liujl@fenbi.com",
                     "shangcr" => "shangcr@fenbi.com"
  }
-  s.source        = { :git => "https://github.com/yuantiku/YTKNetwork.git", :tag => s.version.to_s }
+  s.source        = { :git => "https://github.com/jtans/YTKNetwork.git", :tag => s.version.to_s }
   s.source_files  = "YTKNetwork/*.{h,m}"
   s.requires_arc  = true
 
