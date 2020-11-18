@@ -96,4 +96,11 @@ typedef NS_ENUM(NSUInteger, TYKCachePolicy) {
 
 @end
 
+
+@interface YTKRequest (Model)
+/// Parse custom object from response
+- (id)model;
+
+@end
+
 NS_ASSUME_NONNULL_END

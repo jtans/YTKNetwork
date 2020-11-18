@@ -8,6 +8,10 @@
 
 #import "GetUserInfoApi.h"
 
+@implementation UserInfo
+
+@end
+
 @implementation GetUserInfoApi {
     NSString *_userId;
 }
@@ -42,6 +46,12 @@
 
 - (NSInteger)numberOfRetries {
     return 3;
+}
+
+- (UserInfo *)model {
+    UserInfo *info = [UserInfo new];
+    info.name = @"test";
+    return info;
 }
 
 @end

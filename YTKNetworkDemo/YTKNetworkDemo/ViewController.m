@@ -78,9 +78,12 @@
     api.animatingView = self.view;
 
     [api startWithCompletionBlockWithSuccess:^(YTKBaseRequest *request) {
+        UserInfo *user;
         if (api.isDataFromCache) {
+            user = api.model;
             NSLog(@"使用缓存数据");
         } else {
+            user = api.model;
             NSLog(@"使用网络数据");
         }
         NSLog(@"update ui");

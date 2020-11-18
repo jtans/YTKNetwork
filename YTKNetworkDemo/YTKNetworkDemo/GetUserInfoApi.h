@@ -8,8 +8,15 @@
 
 #import "YTKRequest.h"
 
+@interface UserInfo : NSObject
+@property (copy, nonatomic) NSString *name;
+@property (assign, nonatomic) NSInteger userId;
+@end
+
 @interface GetUserInfoApi : YTKRequest
 
 - (id)initWithUserId:(NSString *)userId;
+
+- (UserInfo *)model;
 
 @end

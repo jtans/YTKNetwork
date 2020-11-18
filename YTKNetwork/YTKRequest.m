@@ -462,3 +462,12 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 }
 
 @end
+
+
+@implementation YTKRequest (Model)
+
+- (id)model {
+    return self.responseObject;
+}
+
+@end
