@@ -337,4 +337,15 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 
 @end
 
+
+/// Support response parse when response sucess
+@interface YTKBaseRequest (Model)
+
+/// The result of parseWithError:. Use this
+@property (strong, nonatomic) id model;
+/// Parse custom object from response, override sub class to parse model yourself
+- (id)parseWithError:(NSError * _Nullable __autoreleasing *)error;
+
+@end
+
 NS_ASSUME_NONNULL_END

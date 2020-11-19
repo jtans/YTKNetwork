@@ -48,9 +48,10 @@
     return 3;
 }
 
-- (UserInfo *)model {
+- (id)parseWithError:(NSError * _Nullable __autoreleasing *)error {
     UserInfo *info = [UserInfo new];
     info.name = @"test";
+    
     return info;
 }
 

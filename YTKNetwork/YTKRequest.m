@@ -277,6 +277,13 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
         }
         return NO;
     }
+    
+    // Try parse result
+    id result = [self parseWithError:error];
+    if (error) {
+        return NO;
+    }
+    self.model = result;
 
     return YES;
 }
@@ -417,15 +424,6 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 - (NSString *)cacheMetadataFilePath {
     NSString *cacheMetadataFileName = [NSString stringWithFormat:@"%@.metadata", [self cacheFileName]];
     return cacheMetadataFileName;
-}
-
-@end
-
-
-@implementation YTKRequest (Model)
-
-- (id)model {
-    return self.responseObject;
 }
 
 @end

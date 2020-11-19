@@ -196,3 +196,22 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
 }
 
 @end
+
+
+
+@implementation YTKBaseRequest (Model)
+
+- (id)model {
+    return objc_getAssociatedObject(self, @selector(model));
+}
+
+- (void)setModel:(id)model {
+    objc_setAssociatedObject(self, @selector(model), model, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (id)parseWithError:(NSError * _Nullable __autoreleasing *)error {
+    [self setModel:self.responseObject];
+    return self.model;
+}
+
+@end

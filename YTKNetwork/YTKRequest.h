@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 
 #import "YTKBaseRequest.h"
+#import <objc/runtime.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -93,13 +94,6 @@ typedef NS_ENUM(NSUInteger, TYKCachePolicy) {
 
 ///  Whether cache is asynchronously written to storage. Default is YES.
 - (BOOL)writeCacheAsynchronously;
-
-@end
-
-
-@interface YTKRequest (Model)
-/// Parse custom object from response
-- (id)model;
 
 @end
 

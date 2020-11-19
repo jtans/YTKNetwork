@@ -380,6 +380,14 @@
         succeed = [self validateResult:request error:&validationError];
         requestError = validationError;
     }
+    
+    if (succeed) {
+        id result = [request parseWithError:&validationError];
+        request.model = result;
+        
+        succeed = validationError == nil;
+        requestError = validationError;
+    }
 
     if (succeed) {
         [self requestDidSucceedWithRequest:request];
