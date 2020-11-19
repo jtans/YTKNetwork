@@ -25,4 +25,5 @@ Pod::Spec.new do |s|
   s.framework = "CFNetwork"
 
   s.dependency "AFNetworking/NSURLSession", "~> 4.0"
+  s.dependency "YYCache"
 end

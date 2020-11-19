@@ -227,6 +227,12 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 ///  The priority of the request. Default is `YTKRequestPriorityDefault`.
 @property (nonatomic) YTKRequestPriority requestPriority;
 
+///  Username and password used for HTTP authorization. Should be formed as @[@"Username", @"Password"].
+@property (strong, nonatomic, nullable) NSArray<NSString *> * requestAuthorizationHeaderFieldArray;
+
+///  Additional HTTP request header field.
+@property (strong, nonatomic, nullable) NSDictionary<NSString *, NSString *> *requestHeaderFieldValueDictionary;
+
 ///  Set completion callbacks
 - (void)setCompletionBlockWithSuccess:(nullable YTKRequestCompletionBlock)success
                               failure:(nullable YTKRequestCompletionBlock)failure;
@@ -312,12 +318,6 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 
 ///  Response serializer type. See also `responseObject`.
 - (YTKResponseSerializerType)responseSerializerType;
-
-///  Username and password used for HTTP authorization. Should be formed as @[@"Username", @"Password"].
-- (nullable NSArray<NSString *> *)requestAuthorizationHeaderFieldArray;
-
-///  Additional HTTP request header field.
-- (nullable NSDictionary<NSString *, NSString *> *)requestHeaderFieldValueDictionary;
 
 ///  Use this to build custom request. If this method return non-nil value, `requestUrl`, `requestTimeoutInterval`,
 ///  `requestArgument`, `allowsCellularAccess`, `requestMethod` and `requestSerializerType` will all be ignored.

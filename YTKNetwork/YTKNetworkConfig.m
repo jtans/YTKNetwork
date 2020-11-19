@@ -23,6 +23,7 @@
 
 #import "YTKNetworkConfig.h"
 #import "YTKBaseRequest.h"
+#import "YTKDefaultCacheHandler.h"
 
 #if __has_include(<AFNetworking/AFSecurityPolicy.h>)
 #import <AFNetworking/AFSecurityPolicy.h>
@@ -32,7 +33,7 @@
 
 @implementation YTKNetworkConfig {
     NSMutableArray<id<YTKUrlFilterProtocol>> *_urlFilters;
-    NSMutableArray<id<YTKCacheDirPathFilterProtocol>> *_cacheDirPathFilters;
+    NSMutableArray<id<YTKCacheProtocol>> *_cacheHandler;
 }
 
 + (YTKNetworkConfig *)sharedConfig {
@@ -50,9 +51,12 @@
         _baseUrl = @"";
         _cdnUrl = @"";
         _urlFilters = [NSMutableArray array];
-        _cacheDirPathFilters = [NSMutableArray array];
+        _cacheHandler = [NSMutableArray array];
         _securityPolicy = [AFSecurityPolicy defaultPolicy];
         _debugLogEnabled = NO;
+        
+        //Default cache
+        [_cacheHandler addObject:[[YTKDefaultCacheHandler alloc] init]];
     }
     return self;
 }
@@ -65,20 +69,16 @@
     [_urlFilters removeAllObjects];
 }
 
-- (void)addCacheDirPathFilter:(id<YTKCacheDirPathFilterProtocol>)filter {
-    [_cacheDirPathFilters addObject:filter];
-}
-
-- (void)clearCacheDirPathFilter {
-    [_cacheDirPathFilters removeAllObjects];
-}
-
 - (NSArray<id<YTKUrlFilterProtocol>> *)urlFilters {
     return [_urlFilters copy];
 }
 
-- (NSArray<id<YTKCacheDirPathFilterProtocol>> *)cacheDirPathFilters {
-    return [_cacheDirPathFilters copy];
+- (void)addCacheHandler:(id<YTKCacheProtocol>)handler {
+    [_cacheHandler addObject:handler];
+}
+
+- (void)clearCacheHandler {
+    [_cacheHandler removeAllObjects];
 }
 
 #pragma mark - NSObject

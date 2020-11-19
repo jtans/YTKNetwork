@@ -327,39 +327,38 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 
 - (BOOL)loadCacheMetadata {
     NSString *path = [self cacheMetadataFilePath];
-    NSFileManager * fileManager = [NSFileManager defaultManager];
-    if ([fileManager fileExistsAtPath:path isDirectory:nil]) {
-        @try {
-            _cacheMetadata = [NSKeyedUnarchiver unarchiveObjectWithFile:path];
-            return YES;
-        } @catch (NSException *exception) {
-            YTKLog(@"Load cache metadata failed, reason = %@", exception.reason);
-            return NO;
+    for (id<YTKCacheProtocol> handler in YTKNetworkConfig.sharedConfig.cacheHandler) {
+        if ([handler containsObjectForKey:path]) {
+            _cacheMetadata = (id)[handler objectForKey:path];
         }
+    }
+    if (_cacheMetadata && [_cacheMetadata isKindOfClass:[YTKCacheMetadata class]]) {
+        return YES;
     }
     return NO;
 }
 
 - (BOOL)loadCacheData {
     NSString *path = [self cacheFilePath];
-    NSFileManager *fileManager = [NSFileManager defaultManager];
     NSError *error = nil;
-
-    if ([fileManager fileExistsAtPath:path isDirectory:nil]) {
-        NSData *data = [NSData dataWithContentsOfFile:path];
-        _cacheData = data;
-        _cacheString = [[NSString alloc] initWithData:_cacheData encoding:self.cacheMetadata.stringEncoding];
-        switch (self.responseSerializerType) {
-            case YTKResponseSerializerTypeHTTP:
-                // Do nothing.
-                return YES;
-            case YTKResponseSerializerTypeJSON:
-                _cacheJSON = [NSJSONSerialization JSONObjectWithData:_cacheData options:(NSJSONReadingOptions)0 error:&error];
-                return error == nil;
-            case YTKResponseSerializerTypeXMLParser:
-                _cacheXML = [[NSXMLParser alloc] initWithData:_cacheData];
-                return YES;
+    
+    for (id<YTKCacheProtocol> handler in YTKNetworkConfig.sharedConfig.cacheHandler) {
+        if ([handler containsObjectForKey:path]) {
+            _cacheData = (id)[handler objectForKey:path];
         }
+    }
+    
+    _cacheString = [[NSString alloc] initWithData:_cacheData encoding:self.cacheMetadata.stringEncoding];
+    switch (self.responseSerializerType) {
+        case YTKResponseSerializerTypeHTTP:
+            // Do nothing.
+            return YES;
+        case YTKResponseSerializerTypeJSON:
+            _cacheJSON = [NSJSONSerialization JSONObjectWithData:_cacheData options:(NSJSONReadingOptions)0 error:&error];
+            return error == nil;
+        case YTKResponseSerializerTypeXMLParser:
+            _cacheXML = [[NSXMLParser alloc] initWithData:_cacheData];
+            return YES;
     }
     return NO;
 }
@@ -369,7 +368,9 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
         if (data != nil) {
             @try {
                 // New data will always overwrite old data.
-                [data writeToFile:[self cacheFilePath] atomically:YES];
+                for (id<YTKCacheProtocol> handler in YTKNetworkConfig.sharedConfig.cacheHandler) {
+                    [handler setObject:data forKey:[self cacheFilePath]];
+                }
 
                 YTKCacheMetadata *metadata = [[YTKCacheMetadata alloc] init];
                 metadata.version = [self cacheVersion];
@@ -377,7 +378,10 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
                 metadata.stringEncoding = [YTKNetworkUtils stringEncodingWithRequest:self];
                 metadata.creationDate = [NSDate date];
                 metadata.appVersionString = [YTKNetworkUtils appVersionString];
-                [NSKeyedArchiver archiveRootObject:metadata toFile:[self cacheMetadataFilePath]];
+
+                for (id<YTKCacheProtocol> handler in YTKNetworkConfig.sharedConfig.cacheHandler) {
+                    [handler setObject:metadata forKey:[self cacheMetadataFilePath]];
+                }
             } @catch (NSException *exception) {
                 YTKLog(@"Save cache failed, reason = %@", exception.reason);
             }
@@ -396,47 +400,6 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 
 #pragma mark -
 
-- (void)createDirectoryIfNeeded:(NSString *)path {
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    BOOL isDir;
-    if (![fileManager fileExistsAtPath:path isDirectory:&isDir]) {
-        [self createBaseDirectoryAtPath:path];
-    } else {
-        if (!isDir) {
-            NSError *error = nil;
-            [fileManager removeItemAtPath:path error:&error];
-            [self createBaseDirectoryAtPath:path];
-        }
-    }
-}
-
-- (void)createBaseDirectoryAtPath:(NSString *)path {
-    NSError *error = nil;
-    [[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES
-                                               attributes:nil error:&error];
-    if (error) {
-        YTKLog(@"create cache directory failed, error = %@", error);
-    } else {
-        [YTKNetworkUtils addDoNotBackupAttribute:path];
-    }
-}
-
-- (NSString *)cacheBasePath {
-    NSString *pathOfLibrary = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    NSString *path = [pathOfLibrary stringByAppendingPathComponent:@"LazyRequestCache"];
-
-    // Filter cache base path
-    NSArray<id<YTKCacheDirPathFilterProtocol>> *filters = [[YTKNetworkConfig sharedConfig] cacheDirPathFilters];
-    if (filters.count > 0) {
-        for (id<YTKCacheDirPathFilterProtocol> f in filters) {
-            path = [f filterCacheDirPath:path withRequest:self];
-        }
-    }
-
-    [self createDirectoryIfNeeded:path];
-    return path;
-}
-
 - (NSString *)cacheFileName {
     NSString *requestUrl = [self requestUrl];
     NSString *baseUrl = [YTKNetworkConfig sharedConfig].baseUrl;
@@ -448,17 +411,12 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 }
 
 - (NSString *)cacheFilePath {
-    NSString *cacheFileName = [self cacheFileName];
-    NSString *path = [self cacheBasePath];
-    path = [path stringByAppendingPathComponent:cacheFileName];
-    return path;
+    return [NSString stringWithFormat:@"%@.data", [self cacheFileName]];
 }
 
 - (NSString *)cacheMetadataFilePath {
     NSString *cacheMetadataFileName = [NSString stringWithFormat:@"%@.metadata", [self cacheFileName]];
-    NSString *path = [self cacheBasePath];
-    path = [path stringByAppendingPathComponent:cacheMetadataFileName];
-    return path;
+    return cacheMetadataFileName;
 }
 
 @end

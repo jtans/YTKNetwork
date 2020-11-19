@@ -30,6 +30,32 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^AFURLSessionTaskDidFinishCollectingMetricsBlock)(NSURLSession *session, NSURLSessionTask *task, NSURLSessionTaskMetrics * metrics) API_AVAILABLE(ios(10), macosx(10.12), watchos(3), tvos(10));
 
+
+/// 缓存处理协议
+@protocol YTKCacheProtocol <NSObject>
+
+/// 是否有值
+/// @param key <#key description#>
+- (BOOL)containsObjectForKey:(NSString *)key;
+
+/// 取值
+/// @param key <#key description#>
+- (nullable id<NSCoding>)objectForKey:(NSString *)key;
+
+/// 设置值
+/// @param object <#object description#>
+/// @param key <#key description#>
+- (void)setObject:(nullable id<NSCoding>)object forKey:(NSString *)key;
+
+/// 移除键值
+/// @param key <#key description#>
+- (void)removeObjectForKey:(NSString *)key;
+
+/// 移除所有键值
+- (void)removeAllObjects;
+
+@end
+
 ///  YTKUrlFilterProtocol can be used to append common parameters to requests before sending them.
 @protocol YTKUrlFilterProtocol <NSObject>
 ///  Preprocess request URL before actually sending them.
@@ -39,17 +65,6 @@ typedef void (^AFURLSessionTaskDidFinishCollectingMetricsBlock)(NSURLSession *se
 ///
 ///  @return A new url which will be used as a new `requestUrl`
 - (NSString *)filterUrl:(NSString *)originUrl withRequest:(YTKBaseRequest *)request;
-@end
-
-///  YTKCacheDirPathFilterProtocol can be used to append common path components when caching response results
-@protocol YTKCacheDirPathFilterProtocol <NSObject>
-///  Preprocess cache path before actually saving them.
-///
-///  @param originPath original base cache path, which is generated in `YTKRequest` class.
-///  @param request    request itself
-///
-///  @return A new path which will be used as base path when caching.
-- (NSString *)filterCacheDirPath:(NSString *)originPath withRequest:(YTKBaseRequest *)request;
 @end
 
 ///  YTKNetworkConfig stored global network-related configurations, which will be used in `YTKNetworkAgent`
@@ -68,8 +83,8 @@ typedef void (^AFURLSessionTaskDidFinishCollectingMetricsBlock)(NSURLSession *se
 @property (nonatomic, strong) NSString *cdnUrl;
 ///  URL filters. See also `YTKUrlFilterProtocol`.
 @property (nonatomic, strong, readonly) NSArray<id<YTKUrlFilterProtocol>> *urlFilters;
-///  Cache path filters. See also `YTKCacheDirPathFilterProtocol`.
-@property (nonatomic, strong, readonly) NSArray<id<YTKCacheDirPathFilterProtocol>> *cacheDirPathFilters;
+///  Cache handler
+@property (nonatomic, strong, readonly) NSArray<id<YTKCacheProtocol>> *cacheHandler;
 ///  Security policy will be used by AFNetworking. See also `AFSecurityPolicy`.
 @property (nonatomic, strong) AFSecurityPolicy *securityPolicy;
 ///  Whether to log debug info. Default is NO;
@@ -83,10 +98,10 @@ typedef void (^AFURLSessionTaskDidFinishCollectingMetricsBlock)(NSURLSession *se
 - (void)addUrlFilter:(id<YTKUrlFilterProtocol>)filter;
 ///  Remove all URL filters.
 - (void)clearUrlFilter;
-///  Add a new cache path filter
-- (void)addCacheDirPathFilter:(id<YTKCacheDirPathFilterProtocol>)filter;
-///  Clear all cache path filters.
-- (void)clearCacheDirPathFilter;
+///  添加缓存处理器
+- (void)addCacheHandler:(id<YTKCacheProtocol>)handler;
+///  清空缓存处理器
+- (void)clearCacheHandler;
 
 @end
 
