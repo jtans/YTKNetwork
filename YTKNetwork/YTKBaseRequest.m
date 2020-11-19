@@ -168,14 +168,6 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
     return YTKResponseSerializerTypeJSON;
 }
 
-- (NSArray *)requestAuthorizationHeaderFieldArray {
-    return nil;
-}
-
-- (NSDictionary *)requestHeaderFieldValueDictionary {
-    return nil;
-}
-
 - (NSURLRequest *)buildCustomUrlRequest {
     return nil;
 }
