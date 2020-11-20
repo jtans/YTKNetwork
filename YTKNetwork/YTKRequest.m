@@ -333,10 +333,10 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 }
 
 - (BOOL)loadCacheMetadata {
-    NSString *path = [self cacheMetadataFilePath];
+    NSString *key = [self cacheMetadataKey];
     for (id<YTKCacheProtocol> handler in YTKNetworkConfig.sharedConfig.cacheHandler) {
-        if ([handler containsObjectForKey:path]) {
-            _cacheMetadata = (id)[handler objectForKey:path];
+        if ([handler containsObjectForKey:key]) {
+            _cacheMetadata = (id)[handler objectForKey:key];
         }
     }
     if (_cacheMetadata && [_cacheMetadata isKindOfClass:[YTKCacheMetadata class]]) {
@@ -346,12 +346,12 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 }
 
 - (BOOL)loadCacheData {
-    NSString *path = [self cacheFilePath];
+    NSString *key = [self cacheDataKey];
     NSError *error = nil;
     
     for (id<YTKCacheProtocol> handler in YTKNetworkConfig.sharedConfig.cacheHandler) {
-        if ([handler containsObjectForKey:path]) {
-            _cacheData = (id)[handler objectForKey:path];
+        if ([handler containsObjectForKey:key]) {
+            _cacheData = (id)[handler objectForKey:key];
         }
     }
     
@@ -376,7 +376,7 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
             @try {
                 // New data will always overwrite old data.
                 for (id<YTKCacheProtocol> handler in YTKNetworkConfig.sharedConfig.cacheHandler) {
-                    [handler setObject:data forKey:[self cacheFilePath]];
+                    [handler setObject:data forKey:[self cacheDataKey]];
                 }
 
                 YTKCacheMetadata *metadata = [[YTKCacheMetadata alloc] init];
@@ -387,7 +387,7 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
                 metadata.appVersionString = [YTKNetworkUtils appVersionString];
 
                 for (id<YTKCacheProtocol> handler in YTKNetworkConfig.sharedConfig.cacheHandler) {
-                    [handler setObject:metadata forKey:[self cacheMetadataFilePath]];
+                    [handler setObject:metadata forKey:[self cacheMetadataKey]];
                 }
             } @catch (NSException *exception) {
                 YTKLog(@"Save cache failed, reason = %@", exception.reason);
@@ -407,7 +407,7 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
 
 #pragma mark -
 
-- (NSString *)cacheFileName {
+- (NSString *)cacheKey {
     NSString *requestUrl = [self requestUrl];
     NSString *baseUrl = [YTKNetworkConfig sharedConfig].baseUrl;
     id argument = [self cacheFileNameFilterForRequestArgument:[self requestArgument]];
@@ -417,12 +417,12 @@ static dispatch_queue_t ytkrequest_cache_writing_queue() {
     return cacheFileName;
 }
 
-- (NSString *)cacheFilePath {
-    return [NSString stringWithFormat:@"%@.data", [self cacheFileName]];
+- (NSString *)cacheDataKey {
+    return [NSString stringWithFormat:@"%@.data", [self cacheKey]];
 }
 
-- (NSString *)cacheMetadataFilePath {
-    NSString *cacheMetadataFileName = [NSString stringWithFormat:@"%@.metadata", [self cacheFileName]];
+- (NSString *)cacheMetadataKey {
+    NSString *cacheMetadataFileName = [NSString stringWithFormat:@"%@.metadata", [self cacheKey]];
     return cacheMetadataFileName;
 }
 
